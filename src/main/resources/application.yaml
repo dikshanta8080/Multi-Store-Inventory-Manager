@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: InventoryManagement
+  profiles:
+    active: dev
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  jackson:
+    date-format: yyyy-MM-dd
