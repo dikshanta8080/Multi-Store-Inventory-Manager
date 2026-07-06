@@ -8,10 +8,13 @@ import org.springframework.stereotype.Component;
 public class TenantTaskDecorator implements TaskDecorator {
     @Override
     public Runnable decorate(Runnable runnable) {
+        // Capture tenant at submission time (may be null for non-tenant tasks)
         String tenantId = TenantContext.getCurrentTenant();
         return () -> {
             try {
-                TenantContext.setCurrentTenant(tenantId);
+                if (tenantId != null) {
+                    TenantContext.setCurrentTenant(tenantId);
+                }
                 runnable.run();
             } finally {
                 TenantContext.clear();
@@ -19,3 +22,4 @@ public class TenantTaskDecorator implements TaskDecorator {
         };
     }
 }
+

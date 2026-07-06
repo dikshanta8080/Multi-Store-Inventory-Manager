@@ -2,6 +2,7 @@ package com.acharya.dikshanta.InventoryManagement.tenant.domain;
 
 import com.acharya.dikshanta.InventoryManagement.common.enums.TenantStatus;
 import com.acharya.dikshanta.InventoryManagement.common.model.BaseEntity;
+import com.acharya.dikshanta.InventoryManagement.staff.domain.Staff;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,4 +24,11 @@ public class Tenant extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TenantStatus status;
+
+    @OneToOne(mappedBy = "tenant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private com.acharya.dikshanta.InventoryManagement.user.domain.User user;
+
+    @OneToMany(mappedBy = "tenant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<Staff> staff = new java.util.ArrayList<>();
 }
