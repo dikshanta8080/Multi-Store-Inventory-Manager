@@ -1,7 +1,5 @@
 package com.acharya.dikshanta.InventoryManagement.tenant.datasource;
 
-import org.springframework.jdbc.datasource.ConnectionProxy;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -20,7 +18,7 @@ final class TenantResettingConnection {
     static Connection wrap(Connection target) {
         return (Connection) Proxy.newProxyInstance(
                 Connection.class.getClassLoader(),
-                new Class<?>[] {Connection.class, ConnectionProxy.class},
+                new Class<?>[] {Connection.class},
                 new ResetOnCloseHandler(target)
         );
     }
@@ -35,9 +33,6 @@ final class TenantResettingConnection {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            if ("getTargetConnection".equals(method.getName())) {
-                return target;
-            }
             if ("close".equals(method.getName()) && method.getParameterCount() == 0) {
                 try {
                     TenantSchemaUtils.resetSearchPath(target);
