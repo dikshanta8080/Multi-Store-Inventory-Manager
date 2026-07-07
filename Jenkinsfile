@@ -24,6 +24,13 @@ pipeline {
             }
         }
 
+        stage('Debug') {
+            steps {
+                echo "GIT_BRANCH is: ${env.GIT_BRANCH}"
+                echo "BRANCH_NAME is: ${env.BRANCH_NAME}"
+            }
+        }
+
         stage('Test') {
             steps {
                 bat 'gradlew.bat test --no-daemon'
@@ -32,9 +39,8 @@ pipeline {
 
         stage('Docker Build & Push') {
             when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
+                expression {
+                    return env.GIT_BRANCH in ['origin/main', 'main', 'origin/master', 'master']
                 }
             }
             steps {
