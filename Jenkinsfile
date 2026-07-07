@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         APP_NAME = 'inventory-management'
-        DEPLOY_DIR = '/opt/inventory-management'
+        DOCKERHUB_NAMESPACE = 'dikshanta07'
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
 
@@ -26,17 +26,11 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh './gradlew test --no-daemon'
+                bat 'gradlew.bat test --no-daemon'
             }
         }
 
-        stage('Build JAR') {
-            steps {
-                sh './gradlew bootJar -x test --no-daemon'
-            }
-        }
-
-        stage('Deploy to VPS') {
+        stage('Docker Build & Push') {
             when {
                 anyOf {
                     branch 'main'
@@ -44,19 +38,30 @@ pipeline {
                 }
             }
             steps {
-                sshagent(credentials: ['vps-ssh-credentials']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "
-                            set -e
-                            cd ${DEPLOY_DIR}
-                            git fetch origin
-                            git reset --hard origin/main
-                            export IMAGE_TAG=${IMAGE_TAG}
-                            docker compose --env-file .env build app
-                            docker compose --env-file .env up -d
-                            docker image prune -f
-                        "
-                    """
+                withCredentials([usernamePassword(
+                    credentialsId: 'docker-hub-credentials',
+                    usernameVariable: 'DOCKERHUB_USER',
+                    passwordVariable: 'DOCKERHUB_TOKEN'
+                )]) {
+                    powershell '''
+                        $ErrorActionPreference = "Stop"
+                        $IMAGE = "$env:DOCKERHUB_NAMESPACE/$env:APP_NAME"
+                        Write-Host "Building $($IMAGE):$env:IMAGE_TAG and $($IMAGE):latest"
+                        docker build -t "$($IMAGE):$env:IMAGE_TAG" -t "$($IMAGE):latest" .
+                        if ($LASTEXITCODE -ne 0) { throw "docker build failed" }
+
+                        $env:DOCKERHUB_TOKEN | docker login -u "$env:DOCKERHUB_USER" --password-stdin
+                        if ($LASTEXITCODE -ne 0) { throw "docker login failed" }
+
+                        docker push "$($IMAGE):$env:IMAGE_TAG"
+                        if ($LASTEXITCODE -ne 0) { throw "docker push (tag) failed" }
+
+                        docker push "$($IMAGE):latest"
+                        if ($LASTEXITCODE -ne 0) { throw "docker push (latest) failed" }
+
+                        docker logout
+                        Write-Host "Published $($IMAGE):$env:IMAGE_TAG"
+                    '''
                 }
             }
         }
@@ -64,7 +69,7 @@ pipeline {
 
     post {
         success {
-            echo "Deployment successful: ${APP_NAME}:${IMAGE_TAG}"
+            echo "Pipeline succeeded. Docker images are pushed to Docker Hub on main/master only."
         }
         failure {
             echo 'Pipeline failed. Check Jenkins console output.'
