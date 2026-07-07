@@ -24,13 +24,6 @@ pipeline {
             }
         }
 
-        stage('Debug') {
-            steps {
-                echo "GIT_BRANCH is: ${env.GIT_BRANCH}"
-                echo "BRANCH_NAME is: ${env.BRANCH_NAME}"
-            }
-        }
-
         stage('Test') {
             steps {
                 bat 'gradlew.bat test --no-daemon'
@@ -53,10 +46,11 @@ pipeline {
                         $ErrorActionPreference = "Stop"
                         $IMAGE = "$env:DOCKERHUB_NAMESPACE/$env:APP_NAME"
                         Write-Host "Building $($IMAGE):$env:IMAGE_TAG and $($IMAGE):latest"
+
                         docker build -t "$($IMAGE):$env:IMAGE_TAG" -t "$($IMAGE):latest" .
                         if ($LASTEXITCODE -ne 0) { throw "docker build failed" }
 
-                        $env:DOCKERHUB_TOKEN | docker login -u "$env:DOCKERHUB_USER" --password-stdin
+                        docker login -u "$env:DOCKERHUB_USER" --password "$env:DOCKERHUB_TOKEN"
                         if ($LASTEXITCODE -ne 0) { throw "docker login failed" }
 
                         docker push "$($IMAGE):$env:IMAGE_TAG"
