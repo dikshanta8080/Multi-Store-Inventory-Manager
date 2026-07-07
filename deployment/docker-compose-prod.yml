@@ -1,0 +1,18 @@
+# Production override — use with root docker-compose.yml on the VPS:
+#
+#   docker compose -f docker-compose.yml -f deployment/docker-compose-prod.yml up -d
+#
+# Or copy this file to the VPS deploy directory and run the command above.
+
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  pgadmin:
+    ports:
+      - "127.0.0.1:5050:80"
+
+  app:
+    ports:
+      - "127.0.0.1:8080:8080"

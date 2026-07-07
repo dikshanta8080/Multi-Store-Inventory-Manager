@@ -24,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         // Try finding as User first
-        Optional<User> userOpt = userRepository.findByEmail(email);
+        Optional<User> userOpt = userRepository.findByEmailWithTenant(email);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             String schema = user.getTenant() != null ? user.getTenant().getSchemaName() : null;

@@ -32,42 +32,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7).trim();
-        
-        try {
-            userEmail = jwtService.extractUsername(jwt);
-            
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+        final String jwt = authHeader.substring(7).trim();
 
-                if (jwtService.isTokenValid(jwt, userDetails.getUsername())) {
+        try {
+            final String userEmail = jwtService.extractUsername(jwt);
+
+            if (userEmail != null && jwtService.isTokenValid(jwt, userEmail)) {
+                // Set tenant BEFORE loading user details (required for staff lookup in tenant schema)
+                String tenantSchema = jwtService.extractTenantSchema(jwt);
+                if (tenantSchema != null && !tenantSchema.isBlank()) {
+                    TenantContext.setCurrentTenant(tenantSchema);
+                }
+
+                if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
+
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
                             userDetails.getAuthorities()
                     );
-                    authToken.setDetails(
-                            new WebAuthenticationDetailsSource().buildDetails(request)
-                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-
-                    // Extract tenant from JWT and populate TenantContext
-                    String tenantSchema = jwtService.extractTenantSchema(jwt);
-                    if (tenantSchema != null && !tenantSchema.isBlank()) {
-                        TenantContext.setCurrentTenant(tenantSchema);
-                    }
                 }
             }
         } catch (Exception e) {
-            // Token is invalid, expired, etc. We just continue down the chain and let Spring Security handle unauthorized access.
             logger.warn("JWT validation failed: " + e.getMessage());
         }
 

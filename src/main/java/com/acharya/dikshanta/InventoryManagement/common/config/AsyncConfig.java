@@ -14,7 +14,7 @@ import java.util.concurrent.Executor;
 public class AsyncConfig {
     private final TenantTaskDecorator tenantTaskDecorator;
 
-    @Bean(name = "taskExecutor")
+    @Bean
     public Executor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 

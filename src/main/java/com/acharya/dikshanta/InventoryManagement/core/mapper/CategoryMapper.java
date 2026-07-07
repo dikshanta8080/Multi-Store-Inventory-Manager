@@ -9,7 +9,10 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface CategoryMapper {
+
     @Mapping(target = "products", ignore = true)
     Category toEntity(CategoryCreateRequest request);
+
     CategoryResponse toResponse(Category category);
 }
+

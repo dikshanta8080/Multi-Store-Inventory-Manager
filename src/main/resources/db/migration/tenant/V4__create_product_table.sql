@@ -1,0 +1,20 @@
+CREATE TABLE product (
+    id            BIGSERIAL PRIMARY KEY,
+    created_at    TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    updated_at    TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    created_by    UUID,
+    updated_by    UUID,
+    version       BIGINT,
+    sku           VARCHAR(255) NOT NULL,
+    barcode       VARCHAR(255) NOT NULL,
+    name          VARCHAR(255) NOT NULL,
+    description   VARCHAR(255),
+    cost_price    NUMERIC(19, 2) NOT NULL,
+    selling_price NUMERIC(19, 2) NOT NULL,
+    status        VARCHAR(50) NOT NULL,
+    category_id   BIGINT NOT NULL,
+    CONSTRAINT uq_product_sku UNIQUE (sku),
+    CONSTRAINT uq_product_barcode UNIQUE (barcode),
+    CONSTRAINT uq_product_name UNIQUE (name),
+    CONSTRAINT fk_product_category FOREIGN KEY (category_id) REFERENCES category (id) ON DELETE RESTRICT
+);

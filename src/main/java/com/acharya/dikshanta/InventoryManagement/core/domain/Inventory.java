@@ -28,7 +28,9 @@ public class Inventory extends BaseEntity {
     @JoinColumn(name = "warehouse_id")
     private Warehouse warehouse;
 
-    private Integer quantity;
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer quantity = 0;
 
     private Integer minimumStock;
 

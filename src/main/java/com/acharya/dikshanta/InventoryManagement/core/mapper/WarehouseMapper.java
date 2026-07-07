@@ -9,8 +9,10 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface WarehouseMapper {
+
     @Mapping(target = "inventories", ignore = true)
     Warehouse toEntity(WarehouseCreateRequest request);
 
     WarehouseResponse toResponse(Warehouse warehouse);
 }
+
