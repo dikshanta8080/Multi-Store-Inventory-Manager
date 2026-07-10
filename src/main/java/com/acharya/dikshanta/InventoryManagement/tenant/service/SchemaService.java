@@ -3,35 +3,34 @@ package com.acharya.dikshanta.InventoryManagement.tenant.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import javax.sql.DataSource;
 
+import javax.sql.DataSource;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class SchemaService {
-    private static final String CREATE_SCHEMA_QUERY = "CREATE SCHEMA IF NOT EXISTS \"%s\"";
-    private final JdbcTemplate jdbcTemplate;
-    private final DataSource dataSource;
+
+    private final @Qualifier("rawDataSource") DataSource rawDataSource;
 
     public void createSchema(String schemaName) {
+        log.info("Provisioning schema '{}' with Flyway migrations", schemaName);
         try {
             Flyway flyway = Flyway.configure()
-                    .dataSource(dataSource)
+                    .dataSource(rawDataSource)
                     .schemas(schemaName)
                     .defaultSchema(schemaName)
                     .createSchemas(true)
                     .locations("classpath:db/migration/tenant")
+                    .baselineOnMigrate(true)
                     .load();
             flyway.migrate();
+            log.info("Schema '{}' provisioned successfully", schemaName);
         } catch (Exception e) {
-            log.error("Failed to create the schema {}", schemaName, e);
-            throw new RuntimeException(e);
+            log.error("Failed to provision schema '{}'", schemaName, e);
+            throw new RuntimeException("Schema provisioning failed for: " + schemaName, e);
         }
-
     }
 }
-

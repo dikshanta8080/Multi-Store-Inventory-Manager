@@ -1,7 +1,6 @@
 package com.acharya.dikshanta.InventoryManagement.staff.domain;
 
 import com.acharya.dikshanta.InventoryManagement.common.model.BaseEntity;
-import com.acharya.dikshanta.InventoryManagement.tenant.domain.Tenant;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,7 +29,6 @@ public class Staff extends BaseEntity {
     @Column(length = 100)
     private String position;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tenant_id", nullable = false)
-    private Tenant tenant;
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
 }

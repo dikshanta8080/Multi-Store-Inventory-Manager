@@ -39,7 +39,7 @@ public class StaffServiceImpl implements StaffService {
                 .password(passwordEncoder.encode(request.password()))
                 .position(request.position())
                 .role(request.role())
-                .tenant(tenant)
+                .tenantId(tenant.getId())
                 .build();
 
         Staff savedStaff = staffRepository.save(staff);

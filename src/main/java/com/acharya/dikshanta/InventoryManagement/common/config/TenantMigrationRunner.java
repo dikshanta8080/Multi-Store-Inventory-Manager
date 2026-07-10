@@ -4,31 +4,42 @@ import com.acharya.dikshanta.InventoryManagement.tenant.domain.Tenant;
 import com.acharya.dikshanta.InventoryManagement.common.enums.TenantStatus;
 import com.acharya.dikshanta.InventoryManagement.tenant.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class TenantMigrationRunner implements CommandLineRunner {
 
-    private final DataSource dataSource;
+    private final @Qualifier("rawDataSource") DataSource rawDataSource;
     private final TenantRepository tenantRepository;
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         List<Tenant> tenants = tenantRepository.findByStatus(TenantStatus.ACTIVE);
+        log.info("Running Flyway tenant migrations for {} active tenant(s)", tenants.size());
         for (Tenant tenant : tenants) {
             String schemaName = tenant.getSchemaName();
-            Flyway.configure()
-                    .dataSource(dataSource)
-                    .locations("classpath:db/migration/tenant")
-                    .schemas(schemaName)
-                    .load()
-                    .migrate();
+            try {
+                Flyway.configure()
+                        .dataSource(rawDataSource)
+                        .locations("classpath:db/migration/tenant")
+                        .schemas(schemaName)
+                        .defaultSchema(schemaName)
+                        .baselineOnMigrate(true)
+                        .load()
+                        .migrate();
+                log.info("Tenant schema '{}' migrated", schemaName);
+            } catch (Exception e) {
+                log.error("Failed to migrate tenant schema '{}'", schemaName, e);
+            }
         }
     }
 }

@@ -56,7 +56,11 @@ public class SchemaMultiTenantConnectionProvider implements MultiTenantConnectio
 
     @Override
     public void releaseConnection(String tenantIdentifier, Connection connection) throws SQLException {
-        connection.close();
+        try {
+            TenantSchemaUtils.resetSearchPath(connection);
+        } finally {
+            connection.close();
+        }
     }
 
     @Override

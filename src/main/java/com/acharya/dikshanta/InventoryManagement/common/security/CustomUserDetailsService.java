@@ -1,5 +1,6 @@
 package com.acharya.dikshanta.InventoryManagement.common.security;
 
+import com.acharya.dikshanta.InventoryManagement.platform.tenant.context.TenantContext;
 import com.acharya.dikshanta.InventoryManagement.staff.domain.Staff;
 import com.acharya.dikshanta.InventoryManagement.user.domain.User;
 import com.acharya.dikshanta.InventoryManagement.staff.repository.StaffRepository;
@@ -23,7 +24,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        // Try finding as User first
         Optional<User> userOpt = userRepository.findByEmailWithTenant(email);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
@@ -31,14 +31,12 @@ public class CustomUserDetailsService implements UserDetailsService {
             return new SecurityUser(user.getEmail(), user.getPassword(), user.getRole().name(), schema);
         }
 
-        // Fallback to Staff only if TenantContext is present
-        String currentTenant = com.acharya.dikshanta.InventoryManagement.platform.tenant.context.TenantContext.getCurrentTenant();
-        if (currentTenant != null && !currentTenant.isBlank() && !currentTenant.equals("public")) {
+        String currentSchema = TenantContext.getCurrentTenant();
+        if (currentSchema != null && !currentSchema.isBlank() && !"public".equalsIgnoreCase(currentSchema)) {
             Optional<Staff> staffOpt = staffRepository.findByEmail(email);
             if (staffOpt.isPresent()) {
                 Staff staff = staffOpt.get();
-                String schema = staff.getTenant() != null ? staff.getTenant().getSchemaName() : null;
-                return new SecurityUser(staff.getEmail(), staff.getPassword(), staff.getRole().name(), schema);
+                return new SecurityUser(staff.getEmail(), staff.getPassword(), staff.getRole().name(), currentSchema);
             }
         }
 

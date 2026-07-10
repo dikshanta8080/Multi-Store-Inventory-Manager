@@ -5,6 +5,7 @@ CREATE TABLE category (
     created_by  UUID,
     updated_by  UUID,
     version     BIGINT,
-    name        VARCHAR(255) NOT NULL UNIQUE,
-    description VARCHAR(255) NOT NULL
+    name        VARCHAR(255) NOT NULL,
+    description TEXT         NOT NULL,
+    CONSTRAINT uq_category_name UNIQUE (name)
 );

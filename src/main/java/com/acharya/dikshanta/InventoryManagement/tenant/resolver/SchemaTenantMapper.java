@@ -1,7 +1,7 @@
 package com.acharya.dikshanta.InventoryManagement.tenant.resolver;
 
 import org.hibernate.context.spi.TenantSchemaMapper;
-import org.jspecify.annotations.NonNull;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
