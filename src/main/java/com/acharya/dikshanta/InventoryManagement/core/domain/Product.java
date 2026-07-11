@@ -11,28 +11,33 @@ import java.math.BigDecimal;
 @Table(
         name = "product",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = "sku"),
-                @UniqueConstraint(columnNames = "barcode"),
-                @UniqueConstraint(columnNames = "name")
+                @UniqueConstraint(name = "uk_product_sku", columnNames = "sku"),
+                @UniqueConstraint(name = "uk_product_barcode", columnNames = "barcode"),
+                @UniqueConstraint(name = "uk_product_name", columnNames = "name")
+        },
+        indexes = {
+                @Index(name = "idx_product_category", columnList = "category_id"),
+                @Index(name = "idx_product_status", columnList = "status"),
+                @Index(name = "idx_product_category_status", columnList = "category_id, status")
         }
 )
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Product extends BaseEntity {
 
-    @Column(name = "sku", nullable = false)
+    @Column(name = "sku", nullable = false, length = 100)
     private String sku;
 
-    @Column(name = "barcode", nullable = false)
+    @Column(name = "barcode", nullable = false, length = 100)
     private String barcode;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 255)
     private String name;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "cost_price", nullable = false, precision = 19, scale = 2)
@@ -46,8 +51,10 @@ public class Product extends BaseEntity {
     private ProductStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "category_id", nullable = false)
+    @JoinColumn(
+            name = "category_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_product_category")
+    )
     private Category category;
-    
-
 }
