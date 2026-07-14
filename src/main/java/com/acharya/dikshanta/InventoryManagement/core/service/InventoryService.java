@@ -11,4 +11,6 @@ public interface InventoryService {
 
 
     void restockProduct(ProductRestockRequest request);
+
+    void deductStock(com.acharya.dikshanta.InventoryManagement.core.dto.request.InventoryDeductRequest request);
 }

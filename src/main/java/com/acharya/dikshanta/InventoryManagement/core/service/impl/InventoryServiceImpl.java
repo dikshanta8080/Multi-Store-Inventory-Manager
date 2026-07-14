@@ -75,7 +75,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     private @NonNull Inventory getInventory(ProductRestockRequest request) {
-        return inventoryRepository.findByProductIdAndWarehouseId(request.productId(), request.inventoryId()).orElseThrow(() -> new ResourceNotFoundException("Inventory does not exists"));
+        return inventoryRepository.findByProductIdAndWarehouseId(request.productId(), request.warehouseId()).orElseThrow(() -> new ResourceNotFoundException("Inventory does not exists"));
     }
 
 
